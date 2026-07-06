@@ -1,65 +1,76 @@
-import Image from "next/image";
+import { Chat } from "./components/Chat";
+
+const STACK = [
+  { label: "Next.js 16", color: "text-foreground" },
+  { label: "Mastra", color: "text-cyan" },
+  { label: "Vercel AI SDK", color: "text-foreground" },
+  { label: "Lightning · NWC", color: "text-lightning" },
+  { label: "Nostr", color: "text-nostr" },
+];
 
 export default function Home() {
+  const useSubscription = !process.env.ANTHROPIC_API_KEY;
+  const modelId = process.env.MODEL_ID?.trim() || "claude-opus-4-8";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
+      <p className="mb-3 text-xs font-mono uppercase tracking-widest text-bitcoin">
+        La Crypta · Hackathon AI AGENTS
+      </p>
+      <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        AI Agents Starter
+      </h1>
+      <p className="mt-4 max-w-2xl text-lg leading-8 text-muted">
+        Boilerplate para el track <strong className="text-foreground">Bots &amp; Automation</strong>:
+        agentes autónomos y workflows que combinan LLMs con Bitcoin/Lightning (NWC) y Nostr.
+      </p>
+
+      <div className="mt-6 flex flex-wrap gap-2 text-sm font-mono">
+        {STACK.map((s) => (
+          <span
+            key={s.label}
+            className={`rounded-full border border-border bg-surface px-3 py-1 ${s.color}`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {s.label}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
+        <span className="rounded-md border border-border bg-surface-2 px-2 py-1">
+          Modo: {useSubscription ? "suscripción (Claude Code)" : "API key"}
+        </span>
+        <span className="rounded-md border border-border bg-surface-2 px-2 py-1">
+          Modelo: {modelId}
+        </span>
+      </div>
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-sm font-mono uppercase tracking-widest text-muted">
+          Chat con el agente
+        </h2>
+        <Chat />
+      </section>
+
+      <section className="mt-10 rounded-xl border border-border bg-surface p-5 text-sm text-muted">
+        <h2 className="mb-2 font-medium text-foreground">Próximos pasos</h2>
+        <ul className="list-inside list-disc space-y-1">
+          <li>
+            Corré la playground de Mastra:{" "}
+            <code className="font-mono text-cyan">pnpm playground</code> (Studio en
+            <code className="font-mono"> localhost:4111</code>) y probá el workflow{" "}
+            <code className="font-mono text-lightning">pay-and-post</code>.
+          </li>
+          <li>
+            Generá una clave Nostr descartable:{" "}
+            <code className="font-mono text-nostr">pnpm gen:keys</code>.
+          </li>
+          <li>
+            Editá el agente en <code className="font-mono">src/mastra/agents/</code> y las
+            herramientas en <code className="font-mono">src/mastra/tools/</code>.
+          </li>
+        </ul>
+      </section>
+    </main>
   );
 }
