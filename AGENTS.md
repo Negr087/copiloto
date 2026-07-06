@@ -14,10 +14,16 @@ Boilerplate for La Crypta's AI AGENTS hackathon (Bots & Automation). Next.js 16 
 - **The Vercel AI SDK is pinned to the v6 line** (`ai@6`, `@ai-sdk/react@3`, `@ai-sdk/anthropic@3`). Do NOT bump them to `@latest` — that's v7, and `ai-sdk-provider-claude-code` has no v7 build (it's `@ai-sdk/provider@3` / v6 only). Keeping v6 is load-bearing.
 - Package manager is **pnpm** (pinned via `packageManager`). Not npm.
 
-## Two model auth modes — both go through `lib/model.ts`
+## Two model auth modes — both go through `lib/model.ts` (dynamic)
 
-- No `ANTHROPIC_API_KEY` → **subscription mode**: `ai-sdk-provider-claude-code`, uses the local Claude Code login. Node runtime only (spawns the CLI). **Does not bridge AI SDK / Mastra tools** — Claude Code runs its own.
-- `ANTHROPIC_API_KEY` set → **API-key mode**: `@ai-sdk/anthropic` over HTTP. Full tool-calling.
+`lib/model.ts` reads env LAZILY (per request) so credentials saved at runtime take effect without a restart. `assistant.ts` passes `model`/`tools` as functions for the same reason.
+
+- No `ANTHROPIC_API_KEY` → **subscription mode**: `ai-sdk-provider-claude-code`, which spawns the Claude Code CLI. Auth is `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) or a local login; the spawned CLI inherits `process.env`. Node runtime only. **Does not bridge AI SDK / Mastra tools** — Claude Code runs its own.
+- `ANTHROPIC_API_KEY` set → **API-key mode**: `@ai-sdk/anthropic` over HTTP. Full tool-calling. Outranks the OAuth token.
+
+## Auth setup flow (`/setup`, dev-only)
+
+`pnpm setup` and the `/setup` page connect Claude by running the **official** `claude setup-token` and writing `CLAUDE_CODE_OAUTH_TOKEN` to `.env` (`lib/claudeToken.ts` + `lib/envFile.ts`). Do NOT add a reverse-engineered OAuth flow — using subscription tokens outside the official CLI violates Anthropic's ToS. Setup routes (`app/api/setup/*`) are gated by `setupEnabled()` (dev-only, hard-403 in production).
 
 Because of the tool-bridging gap, the agent (`src/mastra/agents/assistant.ts`) attaches tools **only in API-key mode**, and the mode-independent tool showcase is the **`pay-and-post` workflow** (calls the lib functions directly).
 

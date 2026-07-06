@@ -23,7 +23,7 @@ Boilerplate para el hackathon **AI AGENTS** de [La Crypta](https://lacrypta.dev)
 
 - **Node.js 22.13+** (Mastra lo requiere). Con nvm: `nvm use` (hay un `.nvmrc`).
 - **pnpm** (el repo fija `pnpm@11` vía `packageManager` + corepack).
-- Para el **modo suscripción** (por defecto): el [CLI de Claude Code](https://claude.com/claude-code) instalado y logueado (`claude auth login`).
+- Para el **modo suscripción** (por defecto): el [CLI de Claude Code](https://claude.com/claude-code) instalado y una suscripción Pro/Max. `pnpm setup` te conecta.
 - Para el **modo API key**: una `ANTHROPIC_API_KEY` de [console.anthropic.com](https://console.anthropic.com).
 
 ## Quickstart (5 minutos)
@@ -35,24 +35,40 @@ nvm install 22 && nvm use          # usa el .nvmrc del repo
 # 2. Instalar dependencias
 pnpm install
 
-# 3. Variables de entorno
-cp .env.example .env               # lo leen tanto Next.js como `mastra dev`
-pnpm gen:keys                      # genera un nsec descartable → pegalo en .env
+# 3. Conectar tu acceso a Claude (una sola vez)
+pnpm setup                         # abre el navegador, guarda el token en .env
 
 # 4. Levantar el dev server
 pnpm dev                           # http://localhost:3000
 ```
 
-Sin `ANTHROPIC_API_KEY` en `.env` arranca en **modo suscripción**: las llamadas al modelo pasan por tu login local de Claude Code (Pro/Max), gratis. Si `claude auth login` ya está hecho y `claude -p "hola"` responde en tu terminal, el chat funciona.
+`pnpm setup` corre el comando oficial `claude setup-token`: aprobás en el navegador
+y se guarda un token de larga duración (`CLAUDE_CODE_OAUTH_TOKEN`) en `.env`. También
+podés hacerlo desde la web en **[/setup](http://localhost:3000/setup)** (botón
+"Conectar con Claude", o pegando un token / API key). Para publicar en Nostr, generá
+una clave descartable con `pnpm gen:keys` y pegala en `.env`.
 
-## Los dos modos de autenticación
+## Configurar el acceso a Claude
+
+Hay una página **/setup** (solo en desarrollo) con tres opciones:
+
+1. **Conectar con Claude** — corre `claude setup-token` (OAuth oficial) y guarda el token.
+2. **Pegar una credencial** — un token `sk-ant-oat01-…` (suscripción) o una API key
+   `sk-ant-api…` (modo API key). Se detecta sola y se guarda en `.env`.
+3. **Probar la conexión** — hace una llamada mínima al modelo para confirmar.
+
+> Usamos el comando **oficial** `claude setup-token`, no un flujo OAuth casero.
+> Los tokens de suscripción sacados por fuera del CLI oficial van contra los términos
+> de Anthropic y pueden derivar en un baneo — este approach evita ese riesgo.
+
+### Los dos modos de autenticación
 
 Todo se resuelve en [`lib/model.ts`](lib/model.ts) según **si existe `ANTHROPIC_API_KEY`**:
 
 | | Modo suscripción (por defecto) | Modo API key |
 | --- | --- | --- |
-| Se activa cuando | **no** hay `ANTHROPIC_API_KEY` | hay `ANTHROPIC_API_KEY` |
-| Cómo llama al modelo | CLI de Claude Code (tu login Pro/Max) | HTTP vía `@ai-sdk/anthropic` |
+| Se activa cuando | hay `CLAUDE_CODE_OAUTH_TOKEN` (y no `ANTHROPIC_API_KEY`) | hay `ANTHROPIC_API_KEY` |
+| Cómo llama al modelo | CLI de Claude Code (tu suscripción Pro/Max) | HTTP vía `@ai-sdk/anthropic` |
 | Costo | gratis (usa tu suscripción) | pago por tokens |
 | Runtime | **solo Node.js** (spawnea el CLI) — no sirve en edge/serverless | cualquiera (edge, serverless, CI) |
 | Tools del chat | ⚠️ **no** (ver abajo) | ✅ sí |
@@ -80,6 +96,7 @@ pnpm playground        # Mastra Studio en http://localhost:4111
 
 | Script | Qué hace |
 | --- | --- |
+| `pnpm setup` | conecta tu suscripción de Claude (`claude setup-token`) y guarda el token en `.env` |
 | `pnpm dev` | Next.js dev server (chat + API) |
 | `pnpm build` / `pnpm start` | build y arranque de producción |
 | `pnpm playground` | Mastra Studio (`mastra dev`) para probar agentes y workflows |
@@ -93,8 +110,12 @@ app/
   page.tsx              landing + chat embebido
   components/Chat.tsx    UI del chat (useChat, AI SDK v6)
   api/chat/route.ts      route handler que streamea desde el agente Mastra
+  setup/                 página /setup (conectar / pegar credencial / probar)
+  api/setup/*            rutas dev-only: status, credential, test, claude-login
 lib/
-  model.ts               resuelve el modelo (suscripción vs API key)
+  model.ts               resuelve el modelo (suscripción vs API key), dinámico
+  claudeToken.ts         corre `claude setup-token` y captura el token
+  envFile.ts             escribe credenciales en .env
   lightning.ts           NWC: pagar / crear factura / balance
   nostr.ts               publicar / leer notas
 src/mastra/
@@ -104,6 +125,7 @@ src/mastra/
   tools/nostr.ts          tools Nostr (wrappers de lib/nostr)
   workflows/pay-and-post.ts   workflow LLM → pagar → publicar
 scripts/
+  setup-auth.ts          `pnpm setup`: conecta la suscripción de Claude
   gen-keys.mjs           generador de claves Nostr
   demo.ts                demo del camino Nostr
 ```
@@ -112,9 +134,12 @@ scripts/
 
 Ver [`.env.example`](.env.example). Resumen:
 
+Normalmente no las tocás a mano — `pnpm setup` / la página `/setup` las escriben.
+
 | Variable | Requerida | Descripción |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | no | Si está, activa el modo API key. Si no, modo suscripción. |
+| `CLAUDE_CODE_OAUTH_TOKEN` | modo suscripción | Token de `claude setup-token`. Lo escribe `pnpm setup` / `/setup`. |
+| `ANTHROPIC_API_KEY` | modo API key | Si está, activa el modo API key (tiene prioridad sobre el token). |
 | `MODEL_ID` | no | Modelo a usar. Default `claude-opus-4-8`. |
 | `NWC_URL` | para Lightning | String de conexión Nostr Wallet Connect (`nostr+walletconnect://...`). |
 | `NOSTR_NSEC` | para publicar | Clave descartable para firmar notas (`pnpm gen:keys`). |

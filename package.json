@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "setup": "tsx scripts/setup-auth.ts",
     "gen:keys": "node scripts/gen-keys.mjs",
     "playground": "mastra dev",
     "demo": "tsx scripts/demo.ts"

@@ -1,4 +1,5 @@
 import { Chat } from "./components/Chat";
+import { AuthBadge } from "./components/AuthBadge";
 
 const STACK = [
   { label: "Next.js 16", color: "text-foreground" },
@@ -9,9 +10,6 @@ const STACK = [
 ];
 
 export default function Home() {
-  const useSubscription = !process.env.ANTHROPIC_API_KEY;
-  const modelId = process.env.MODEL_ID?.trim() || "claude-opus-4-8";
-
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
       <p className="mb-3 text-xs font-mono uppercase tracking-widest text-bitcoin">
@@ -36,14 +34,7 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
-        <span className="rounded-md border border-border bg-surface-2 px-2 py-1">
-          Modo: {useSubscription ? "suscripción (Claude Code)" : "API key"}
-        </span>
-        <span className="rounded-md border border-border bg-surface-2 px-2 py-1">
-          Modelo: {modelId}
-        </span>
-      </div>
+      <AuthBadge />
 
       <section className="mt-10">
         <h2 className="mb-3 text-sm font-mono uppercase tracking-widest text-muted">
