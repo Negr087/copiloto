@@ -14,16 +14,19 @@ Boilerplate for La Crypta's AI AGENTS hackathon (Bots & Automation). Next.js 16 
 - **The Vercel AI SDK is pinned to the v6 line** (`ai@6`, `@ai-sdk/react@3`, `@ai-sdk/anthropic@3`). Do NOT bump them to `@latest` — that's v7, and `ai-sdk-provider-claude-code` has no v7 build (it's `@ai-sdk/provider@3` / v6 only). Keeping v6 is load-bearing.
 - Package manager is **pnpm** (pinned via `packageManager`). Not npm.
 
-## Two model auth modes — both go through `lib/model.ts` (dynamic)
+## Providers — `lib/providers.ts` + `lib/model.ts` (dynamic)
 
-`lib/model.ts` reads env LAZILY (per request) so credentials saved at runtime take effect without a restart. `assistant.ts` passes `model`/`tools` as functions for the same reason.
+Four providers, selected by `AI_PROVIDER` (`subscription` | `anthropic` | `openai` | `gateway`); model by `MODEL_ID` (empty → provider default). To add one, extend the `PROVIDERS` registry in `lib/providers.ts` and add a `case` in `getModel()`. `lib/model.ts` reads env LAZILY (per request) and `assistant.ts` passes `model`/`tools` as functions, so config saved at runtime takes effect without a restart.
 
-- No `ANTHROPIC_API_KEY` → **subscription mode**: `ai-sdk-provider-claude-code`, which spawns the Claude Code CLI. Auth is `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) or a local login; the spawned CLI inherits `process.env`. Node runtime only. **Does not bridge AI SDK / Mastra tools** — Claude Code runs its own.
-- `ANTHROPIC_API_KEY` set → **API-key mode**: `@ai-sdk/anthropic` over HTTP. Full tool-calling. Outranks the OAuth token.
+- `subscription` — `ai-sdk-provider-claude-code`, spawns the Claude Code CLI. Auth = `CLAUDE_CODE_OAUTH_TOKEN`. **Node runtime only; does NOT bridge Mastra/AI SDK tools.** `getModel()` passes `env` (process.env MINUS `ANTHROPIC_API_KEY`, which would outrank the token) as a per-call `ClaudeCodeSettings`.
+- `anthropic` / `openai` — `@ai-sdk/anthropic` / `@ai-sdk/openai` over HTTP.
+- `gateway` — Vercel AI Gateway via `createGateway` (re-exported from `ai`). Models are `creator/model` slugs. One key, any provider.
 
-## Auth setup flow (`/setup`, dev-only)
+`providerSupportsChatTools()` gates the agent's chat tools (all but subscription).
 
-`pnpm setup` and the `/setup` page connect Claude by running the **official** `claude setup-token` and writing `CLAUDE_CODE_OAUTH_TOKEN` to `.env` (`lib/claudeToken.ts` + `lib/envFile.ts`). Do NOT add a reverse-engineered OAuth flow — using subscription tokens outside the official CLI violates Anthropic's ToS. Setup routes (`app/api/setup/*`) are gated by `setupEnabled()` (dev-only, hard-403 in production).
+## Auth setup flow (`/setup` + `/api/setup/*`, dev-only)
+
+`/setup` picks provider + model + credential → `POST /api/setup/config` writes `AI_PROVIDER`/`MODEL_ID`/the key env var (`lib/envFile.ts`). The subscription "Conectar" button + `pnpm setup` run the **official** `claude setup-token` (`lib/claudeToken.ts`). Do NOT add a reverse-engineered OAuth flow — using subscription tokens outside the official CLI violates Anthropic's ToS. All setup routes are gated by `setupEnabled()` (dev-only, hard-403 in production).
 
 Because of the tool-bridging gap, the agent (`src/mastra/agents/assistant.ts`) attaches tools **only in API-key mode**, and the mode-independent tool showcase is the **`pay-and-post` workflow** (calls the lib functions directly).
 

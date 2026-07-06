@@ -1,5 +1,5 @@
 import { runSetupToken } from '../lib/claudeToken';
-import { clearEnvVar, saveEnvVar } from '../lib/envFile';
+import { saveEnvVar } from '../lib/envFile';
 
 // `pnpm setup` — connect your Claude Pro/Max subscription for local dev.
 // Runs the official `claude setup-token` (opens the browser), captures the
@@ -15,7 +15,7 @@ async function main() {
   });
 
   await saveEnvVar('CLAUDE_CODE_OAUTH_TOKEN', token);
-  await clearEnvVar('ANTHROPIC_API_KEY');
+  await saveEnvVar('AI_PROVIDER', 'subscription');
 
   console.log('\n✅  Token guardado en .env (CLAUDE_CODE_OAUTH_TOKEN).');
   console.log('    Corré `pnpm dev` — el chat funciona en modo suscripción.\n');

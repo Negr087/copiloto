@@ -1,5 +1,5 @@
 import { runSetupToken } from '@/lib/claudeToken';
-import { clearEnvVar, saveEnvVar } from '@/lib/envFile';
+import { saveEnvVar } from '@/lib/envFile';
 import { authStatus, setupDisabledResponse, setupEnabled } from '@/lib/setupAuth';
 
 export const runtime = 'nodejs';
@@ -16,7 +16,7 @@ export async function POST() {
   try {
     const token = await runSetupToken();
     await saveEnvVar('CLAUDE_CODE_OAUTH_TOKEN', token);
-    await clearEnvVar('ANTHROPIC_API_KEY');
+    await saveEnvVar('AI_PROVIDER', 'subscription');
     return Response.json({ ok: true, status: authStatus() });
   } catch (err) {
     return Response.json({ ok: false, error: (err as Error).message });

@@ -1,6 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import type { MastraLanguageModel, ToolsInput } from '@mastra/core/agent';
-import { getModel, useSubscription } from '@/lib/model';
+import { getModel, providerSupportsChatTools } from '@/lib/model';
 import { getBalanceTool, makeInvoiceTool, payInvoiceTool } from '../tools/lightning';
 import { publishNoteTool, readFeedTool } from '../tools/nostr';
 
@@ -45,5 +45,5 @@ pero el workflow "pay-and-post" sí funciona: sugerí correrlo desde la playgrou
   // the AI SDK v6 LanguageModel and Mastra's bundled provider types are
   // structurally identical at runtime.
   model: () => getModel() as unknown as MastraLanguageModel,
-  tools: (): ToolsInput => (useSubscription() ? {} : apiKeyTools),
+  tools: (): ToolsInput => (providerSupportsChatTools() ? apiKeyTools : {}),
 });

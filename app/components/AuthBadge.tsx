@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 
 type Status = {
-  mode: 'subscription' | 'apikey';
-  modeLabel: string;
-  modelId: string;
+  provider: string;
+  providerLabel: string;
+  model: string;
   configured: boolean;
 };
 
@@ -27,7 +27,7 @@ export function AuthBadge() {
         href="/setup"
         className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-300 hover:bg-yellow-500/15"
       >
-        <span>⚠️ Falta configurar el acceso a Claude.</span>
+        <span>⚠️ Falta configurar el proveedor de IA.</span>
         <span className="font-medium underline">Configurar →</span>
       </a>
     );
@@ -38,8 +38,12 @@ export function AuthBadge() {
       <span className="rounded-md border border-green-500/40 bg-green-500/10 px-2 py-1 text-green-400">
         ● conectado
       </span>
-      <span className="rounded-md border border-border bg-surface-2 px-2 py-1">Modo: {status.modeLabel}</span>
-      <span className="rounded-md border border-border bg-surface-2 px-2 py-1">Modelo: {status.modelId}</span>
+      <span className="rounded-md border border-border bg-surface-2 px-2 py-1">
+        {status.providerLabel}
+      </span>
+      <span className="rounded-md border border-border bg-surface-2 px-2 py-1">
+        {status.model}
+      </span>
       <a href="/setup" className="text-cyan hover:underline">
         cambiar
       </a>

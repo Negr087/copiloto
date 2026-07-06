@@ -1,63 +1,65 @@
 import type { LanguageModel } from 'ai';
-import { claudeCode } from 'ai-sdk-provider-claude-code';
+import { createGateway } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
+import { claudeCode } from 'ai-sdk-provider-claude-code';
+import { PROVIDERS, isProviderId, type ProviderId } from './providers';
 
 /**
- * Model resolution for the whole app.
+ * Model resolution. The provider is chosen by AI_PROVIDER and the model by
+ * MODEL_ID (or the provider's default). Everything is read LAZILY (per request)
+ * so config saved at runtime via /setup takes effect without a restart.
  *
- * Auth is chosen automatically from the environment. All getters read
- * `process.env` LAZILY (at call time, not module load) so that credentials
- * saved at runtime by the /setup flow take effect on the next request without
- * a server restart.
- *
- *  - Subscription mode (default): routes through the local Claude Code CLI.
- *    Auth comes from either CLAUDE_CODE_OAUTH_TOKEN (a long-lived token from
- *    `claude setup-token` or the in-app /setup flow) or an existing local
- *    `claude auth login`. The provider spawns the CLI, which inherits this
- *    process's env — so setting CLAUDE_CODE_OAUTH_TOKEN here is enough.
- *    Node.js runtime only (spawns a subprocess); NOT edge/serverless.
- *    NOTE: Claude Code runs its own tools; AI SDK / Mastra tools are not bridged.
- *
- *  - API-key mode: set ANTHROPIC_API_KEY → calls go over HTTP via
- *    @ai-sdk/anthropic. Works anywhere and fully supports tool-calling.
+ * Change the provider/model any time from /setup (or by editing .env).
  */
 
-const DEFAULT_MODEL_ID = 'claude-opus-4-8';
-
-/** Effective model id: MODEL_ID env override, else the default. */
-export function getModelId(): string {
-  return process.env.MODEL_ID?.trim() || DEFAULT_MODEL_ID;
+/** Active provider: AI_PROVIDER if valid, else inferred, else subscription. */
+export function getProvider(): ProviderId {
+  const p = process.env.AI_PROVIDER?.trim();
+  if (isProviderId(p)) return p;
+  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
+  return 'subscription';
 }
 
-/** True when no ANTHROPIC_API_KEY is present → use the Claude Code subscription. */
-export function useSubscription(): boolean {
-  return !process.env.ANTHROPIC_API_KEY;
+/** Effective model id: MODEL_ID override, else the provider's default. */
+export function getModelId(provider: ProviderId = getProvider()): string {
+  return process.env.MODEL_ID?.trim() || PROVIDERS[provider].defaultModel;
 }
 
-/** Whether a usable credential is configured for the active mode. */
-export function isAuthConfigured(): boolean {
-  if (!useSubscription()) return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
-  // Subscription mode: a token here, or a local `claude auth login`, works.
-  return Boolean(process.env.CLAUDE_CODE_OAUTH_TOKEN?.trim());
+/** Whether the active provider's credential is present. */
+export function isAuthConfigured(provider: ProviderId = getProvider()): boolean {
+  return Boolean(process.env[PROVIDERS[provider].keyEnv]?.trim());
 }
 
-/** Human-readable label for the active mode (for logs / the UI). */
-export function modeLabel(): string {
-  return useSubscription()
-    ? 'suscripción (Claude Code)'
-    : 'API key (@ai-sdk/anthropic)';
+/** Chat tools are bridged for every provider except the Claude Code subscription. */
+export function providerSupportsChatTools(provider: ProviderId = getProvider()): boolean {
+  return PROVIDERS[provider].toolsInChat;
 }
 
-/**
- * Resolve a Vercel AI SDK language model for the current auth mode.
- * `claudeCode()` accepts full ids ("claude-opus-4-8") or short names
- * ("opus" | "sonnet" | "haiku" | "fable"); `@ai-sdk/anthropic` wants the full id.
- */
-export function getModel(modelId: string = getModelId()): LanguageModel {
-  if (useSubscription()) {
-    // The spawned CLI inherits process.env.CLAUDE_CODE_OAUTH_TOKEN, if set.
-    return claudeCode(modelId);
+/** Human-readable label for the active provider. */
+export function modeLabel(provider: ProviderId = getProvider()): string {
+  return PROVIDERS[provider].label;
+}
+
+/** Resolve a Vercel AI SDK language model for the active provider. */
+export function getModel(modelId?: string): LanguageModel {
+  const provider = getProvider();
+  const id = modelId ?? getModelId(provider);
+
+  switch (provider) {
+    case 'subscription': {
+      // The provider's `env` REPLACES the spawned CLI's environment. Pass the
+      // full env MINUS ANTHROPIC_API_KEY (which would outrank the OAuth token),
+      // so the subscription is always used.
+      const { ANTHROPIC_API_KEY: _omit, ...env } = process.env;
+      void _omit;
+      return claudeCode(id, { env });
+    }
+    case 'anthropic':
+      return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(id);
+    case 'openai':
+      return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(id);
+    case 'gateway':
+      return createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY })(id);
   }
-  const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  return anthropic(modelId);
 }

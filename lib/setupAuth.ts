@@ -1,14 +1,14 @@
-import { getModelId, isAuthConfigured, modeLabel, useSubscription } from './model';
+import { getModelId, getProvider, isAuthConfigured, modeLabel } from './model';
+import { PROVIDER_IDS, PROVIDERS, type ProviderId } from './providers';
 
 /**
- * The /setup flow writes credentials to .env and exposes an OAuth flow, so it is
- * DEV-ONLY. In production, credentials come from the platform's env vars.
+ * The /setup flow writes credentials to .env and exposes a connect flow, so it
+ * is DEV-ONLY. In production, config comes from the platform's env vars.
  */
 export function setupEnabled(): boolean {
   return process.env.NODE_ENV !== 'production';
 }
 
-/** JSON 403 used by every setup route when running in production. */
 export function setupDisabledResponse(): Response {
   return Response.json(
     { error: 'El setup solo está disponible en desarrollo. En producción configurá las variables de entorno.' },
@@ -16,40 +16,58 @@ export function setupDisabledResponse(): Response {
   );
 }
 
-export type AuthStatus = {
-  mode: 'subscription' | 'apikey';
-  modeLabel: string;
-  modelId: string;
+export type ProviderStatus = {
+  id: ProviderId;
+  label: string;
+  keyEnv: string;
+  keyLabel: string;
+  keyPlaceholder: string;
+  keyPrefix: string | null;
+  connect: boolean;
+  free: boolean;
+  runtime: 'node' | 'any';
+  toolsInChat: boolean;
+  defaultModel: string;
+  modelSuggestions: string[];
+  note: string | null;
   configured: boolean;
-  hasOAuthToken: boolean;
-  hasApiKey: boolean;
-  setupEnabled: boolean;
 };
 
-export type CredentialKind = 'oauth-token' | 'api-key' | 'refresh' | 'unknown';
-
-/**
- * Classify a pasted credential by prefix:
- *  - sk-ant-oat01-  → Claude Code OAuth token → CLAUDE_CODE_OAUTH_TOKEN
- *  - sk-ant-api...  → Anthropic API key       → ANTHROPIC_API_KEY
- *  - sk-ant-ort01-  → refresh token (not usable on its own)
- */
-export function detectCredential(value: string): CredentialKind {
-  const v = value.trim();
-  if (v.startsWith('sk-ant-oat01-')) return 'oauth-token';
-  if (v.startsWith('sk-ant-ort01-')) return 'refresh';
-  if (v.startsWith('sk-ant-api')) return 'api-key';
-  return 'unknown';
-}
+export type AuthStatus = {
+  provider: ProviderId;
+  providerLabel: string;
+  model: string;
+  configured: boolean;
+  setupEnabled: boolean;
+  providers: ProviderStatus[];
+};
 
 export function authStatus(): AuthStatus {
+  const provider = getProvider();
   return {
-    mode: useSubscription() ? 'subscription' : 'apikey',
-    modeLabel: modeLabel(),
-    modelId: getModelId(),
-    configured: isAuthConfigured(),
-    hasOAuthToken: Boolean(process.env.CLAUDE_CODE_OAUTH_TOKEN?.trim()),
-    hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
+    provider,
+    providerLabel: modeLabel(provider),
+    model: getModelId(provider),
+    configured: isAuthConfigured(provider),
     setupEnabled: setupEnabled(),
+    providers: PROVIDER_IDS.map((id) => {
+      const m = PROVIDERS[id];
+      return {
+        id,
+        label: m.label,
+        keyEnv: m.keyEnv,
+        keyLabel: m.keyLabel,
+        keyPlaceholder: m.keyPlaceholder,
+        keyPrefix: m.keyPrefix ?? null,
+        connect: m.connect,
+        free: m.free,
+        runtime: m.runtime,
+        toolsInChat: m.toolsInChat,
+        defaultModel: m.defaultModel,
+        modelSuggestions: m.modelSuggestions,
+        note: m.note ?? null,
+        configured: Boolean(process.env[m.keyEnv]?.trim()),
+      };
+    }),
   };
 }

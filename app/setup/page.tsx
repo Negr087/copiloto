@@ -9,9 +9,10 @@ export default function SetupPage() {
       <p className="mb-3 text-xs font-mono uppercase tracking-widest text-bitcoin">
         La Crypta · AI Agents Starter
       </p>
-      <h1 className="text-3xl font-semibold tracking-tight">Configurar acceso a Claude</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">Configurar el proveedor de IA</h1>
       <p className="mt-3 text-muted">
-        Conectá tu suscripción de Claude (gratis) o una API key para que el chat y los agentes funcionen.
+        Elegí un proveedor (Claude gratis con tu suscripción, Anthropic, OpenAI o Vercel AI Gateway),
+        el modelo, y guardá la credencial. Podés cambiarlo cuando quieras.
       </p>
 
       {setupEnabled() ? (

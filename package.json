@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.93",
+    "@ai-sdk/openai": "3.0.80",
     "@ai-sdk/react": "3.0.221",
     "@getalby/sdk": "8.0.3",
     "@mastra/ai-sdk": "1.6.1",
