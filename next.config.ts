@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
     "@mastra/ai-sdk",
     "ai-sdk-provider-claude-code",
     "@anthropic-ai/claude-agent-sdk",
+    // Native addon (PTY for the /setup Claude connect flow) — must not be bundled.
+    "node-pty",
   ],
 };
 
