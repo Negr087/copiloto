@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type ProviderStatus = {
   id: string;
@@ -35,6 +35,23 @@ export function SetupPanel() {
   const [apiKey, setApiKey] = useState('');
   const [busy, setBusy] = useState<null | 'save' | 'connect' | 'test'>(null);
   const [msg, setMsg] = useState<Msg>(null);
+  // Claude connect: after "start" the CLI opens the browser and its loopback
+  // server auto-captures the code — we poll for the token. A manual paste input
+  // (fallbackUrl + authCode) is offered as a fallback.
+  const [connecting, setConnecting] = useState(false);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
+  const [authCode, setAuthCode] = useState('');
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }, []);
+
+  // Stop polling if the component unmounts mid-flow.
+  useEffect(() => stopPolling, [stopPolling]);
 
   const refresh = useCallback(async (): Promise<Status | null> => {
     try {
@@ -57,6 +74,14 @@ export function SetupPanel() {
     setApiKey('');
     setModel('');
     setMsg(null);
+    resetConnect();
+  }
+
+  function resetConnect() {
+    stopPolling();
+    setConnecting(false);
+    setFallbackUrl(null);
+    setAuthCode('');
   }
 
   async function save() {
@@ -84,21 +109,97 @@ export function SetupPanel() {
     }
   }
 
-  async function connect() {
+  const loginPost = (payload: object) =>
+    fetch('/api/setup/claude-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then((r) => r.json());
+
+  // Spawn `claude setup-token`. It opens the browser; its loopback server
+  // auto-captures the code once the user approves. We poll for the token.
+  async function startConnect() {
     setBusy('connect');
+    setAuthCode('');
+    setFallbackUrl(null);
     setMsg({ kind: 'info', text: 'Abriendo el navegador para aprobar el acceso…' });
     try {
-      const data = await (await fetch('/api/setup/claude-login', { method: 'POST' })).json();
+      const data = await loginPost({ action: 'start' });
+      if (!data.ok) {
+        setMsg({ kind: 'error', text: data.error ?? 'No se pudo iniciar la conexión.' });
+        return;
+      }
+      setFallbackUrl(data.fallbackUrl ?? null);
+      setConnecting(true);
+      setMsg({
+        kind: 'info',
+        text: 'Aprobá el acceso en el navegador. Cuando lo hagas, se conecta solo…',
+      });
+      // Poll until the loopback server captures the code and the token appears.
+      stopPolling();
+      pollRef.current = setInterval(pollConnect, 1500);
+    } catch (e) {
+      setMsg({ kind: 'error', text: (e as Error).message });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function pollConnect() {
+    let data;
+    try {
+      data = await loginPost({ action: 'poll' });
+    } catch {
+      return; // transient; keep polling
+    }
+    if (data.stage === 'done') {
+      resetConnect();
+      setStatus(data.status);
+      setMsg({ kind: 'ok', text: '¡Conectado! Token guardado en .env.' });
+      return;
+    }
+    if (!data.ok) {
+      resetConnect();
+      setMsg({ kind: 'error', text: data.error ?? 'No se pudo conectar.' });
+      return;
+    }
+    if (data.fallbackUrl) setFallbackUrl(data.fallbackUrl);
+  }
+
+  // Fallback path: user copied a code from the fallback page and pastes it here.
+  async function submitCode() {
+    if (!authCode.trim()) {
+      setMsg({ kind: 'error', text: 'Pegá el código de autorización primero.' });
+      return;
+    }
+    setBusy('connect');
+    stopPolling(); // avoid racing the poll while we submit
+    setMsg({ kind: 'info', text: 'Verificando el código y guardando el token…' });
+    try {
+      const data = await loginPost({ action: 'submit', code: authCode });
       if (data.ok) {
+        resetConnect();
         setStatus(data.status);
         setMsg({ kind: 'ok', text: '¡Conectado! Token guardado en .env.' });
       } else {
+        // On a bad code the CLI stays alive — resume polling and let them retry.
         setMsg({ kind: 'error', text: data.error ?? 'No se pudo conectar.' });
+        if (connecting && !pollRef.current) pollRef.current = setInterval(pollConnect, 1500);
       }
     } catch (e) {
       setMsg({ kind: 'error', text: (e as Error).message });
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function cancelConnect() {
+    resetConnect();
+    setMsg(null);
+    try {
+      await loginPost({ action: 'cancel' });
+    } catch {
+      // ignore
     }
   }
 
@@ -191,18 +292,68 @@ export function SetupPanel() {
           </h2>
           {current.note && <p className="mt-1 text-sm text-muted">{current.note}</p>}
 
-          {current.connect && (
+          {current.connect && !connecting && (
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <button
-                onClick={connect}
+                onClick={startConnect}
                 disabled={busy !== null}
                 className="rounded-lg bg-cyan px-4 py-2 text-sm font-medium text-black disabled:opacity-40"
               >
-                {busy === 'connect' ? 'Conectando…' : 'Conectar con Claude'}
+                {busy === 'connect' ? 'Abriendo…' : 'Conectar con Claude'}
               </button>
               <span className="text-xs text-muted">
                 o desde la terminal: <code className="font-mono text-foreground">pnpm setup</code>
               </span>
+            </div>
+          )}
+
+          {current.connect && connecting && (
+            <div className="mt-3 rounded-lg border border-cyan/40 bg-cyan/5 p-3">
+              <div className="flex items-center gap-2 text-sm text-cyan">
+                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-cyan/40 border-t-cyan" />
+                Esperando que apruebes el acceso en el navegador…
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                Se conecta solo cuando aprobás. Si el navegador no se abrió,{' '}
+                {fallbackUrl ? (
+                  <a
+                    href={fallbackUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-cyan hover:underline"
+                  >
+                    abrí este enlace
+                  </a>
+                ) : (
+                  'revisá la terminal'
+                )}{' '}
+                — te dará un código para pegar acá:
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  value={authCode}
+                  onChange={(e) => setAuthCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') submitCode();
+                  }}
+                  placeholder="código de autorización (opcional)"
+                  className="min-w-[15rem] flex-1 rounded-lg border border-border bg-surface-2 px-3 py-2 font-mono text-xs outline-none focus:border-cyan/60"
+                />
+                <button
+                  onClick={submitCode}
+                  disabled={busy !== null || !authCode.trim()}
+                  className="rounded-lg border border-cyan/50 px-3 py-2 text-xs text-cyan disabled:opacity-40"
+                >
+                  {busy === 'connect' ? 'Verificando…' : 'Usar código'}
+                </button>
+                <button
+                  onClick={cancelConnect}
+                  disabled={busy !== null}
+                  className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs text-muted disabled:opacity-40"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           )}
 
