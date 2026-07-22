@@ -37,6 +37,9 @@ yarn-error.log*
 # mastra local build/playground output
 .mastra/
 
+# estado local del daemon (feed, pausa, confirmaciones pendientes)
+.data/
+
 # vercel
 .vercel
 
