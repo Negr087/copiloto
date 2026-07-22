@@ -11,8 +11,7 @@ import { publishNoteTool, readFeedTool } from '../tools/nostr';
  * per request — a credential saved at runtime via /setup takes effect without a
  * restart. Tools are attached only in API-key mode: in subscription mode the
  * Claude Code provider runs its own built-in tools and does NOT bridge AI SDK /
- * Mastra tools, so attaching ours there would silently no-op. The pay-and-post
- * WORKFLOW is the tool showcase that works in both modes (see ../workflows).
+ * Mastra tools, so attaching ours there would silently no-op.
  */
 const apiKeyTools: ToolsInput = {
   getBalanceTool,
@@ -39,8 +38,7 @@ repo (Next.js, Mastra, @getalby/sdk, nostr-tools).
 
 Si el usuario tiene configurada una API key de Anthropic, tenés herramientas para
 consultar balance Lightning, crear/pagar facturas y publicar/leer notas de Nostr.
-Sin API key (modo suscripción) esas herramientas no están disponibles en el chat,
-pero el workflow "pay-and-post" sí funciona: sugerí correrlo desde la playground de Mastra.`,
+Sin API key (modo suscripción) esas herramientas no están disponibles en el chat.`,
   // Dynamic (per-request) resolution. The cast bridges a harmless version skew:
   // the AI SDK v6 LanguageModel and Mastra's bundled provider types are
   // structurally identical at runtime.

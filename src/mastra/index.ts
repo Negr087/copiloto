@@ -1,6 +1,5 @@
 import { Mastra } from '@mastra/core/mastra';
 import { assistant } from './agents/assistant';
-import { payAndPostWorkflow } from './workflows/pay-and-post';
 
 /**
  * The Mastra instance. `pnpm playground` (mastra dev) reads THIS file and
@@ -9,5 +8,4 @@ import { payAndPostWorkflow } from './workflows/pay-and-post';
  */
 export const mastra = new Mastra({
   agents: { assistant },
-  workflows: { payAndPostWorkflow },
 });
