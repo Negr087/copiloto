@@ -180,14 +180,14 @@ export default function FeedPage() {
                 disabled={enviando}
                 className="px-6 py-3 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 disabled:opacity-50 transition"
               >
-                Pagar
+                Autorizar
               </button>
               <button
                 onClick={() => decidir(false)}
                 disabled={enviando}
                 className="px-6 py-3 rounded-lg bg-zinc-800 text-zinc-300 font-bold hover:bg-zinc-700 disabled:opacity-50 transition"
               >
-                Cancelar
+                Denegar
               </button>
             </div>
           </BorderGlow>

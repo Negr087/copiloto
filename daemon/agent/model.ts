@@ -1,4 +1,5 @@
 import type { LanguageModel } from "ai";
+import { pedirConfirmacion } from "../pending";
 
 /**
  * Resuelve el modelo segun AI_PROVIDER, igual que lib/model.ts del boilerplate.
@@ -15,10 +16,31 @@ export async function getModel(): Promise<LanguageModel> {
 
   switch (provider) {
     case "subscription": {
-      // Corre el CLI de Claude Code como subproceso. Solo Node local,
-      // que es exactamente donde vive este daemon.
+      // Corre el CLI de Claude Code como subproceso, que trae sus PROPIAS
+      // herramientas (bash, archivos, web) separadas de todo lo que define
+      // este daemon. canUseTool es el UNICO que decide: nombrar una
+      // herramienta en allowedTools la auto-aprueba antes de que canUseTool
+      // se llegue a llamar (nos paso probando esto), asi que dejamos esa
+      // lista vacia y filtramos aca adentro. Solo WebFetch puede pedir
+      // permiso, y lo hace por el mismo camino que una factura: una
+      // tarjeta en el feed web, con timeout que falla cerrado si no
+      // contestas. Cualquier otra herramienta se deniega sin preguntar.
       const { claudeCode } = await import("ai-sdk-provider-claude-code");
-      return claudeCode(modelId || "opus");
+      return claudeCode(modelId || "opus", {
+        canUseTool: async (toolName, input, options) => {
+          if (toolName !== "WebFetch") {
+            return { behavior: "deny", message: "Herramienta no permitida." };
+          }
+
+          const aprobado = await pedirConfirmacion(
+            options.title ?? "Autorizar " + toolName,
+            options.description ?? (typeof input.url === "string" ? input.url : JSON.stringify(input)),
+          );
+          return aprobado
+            ? { behavior: "allow", updatedInput: input }
+            : { behavior: "deny", message: "El usuario no autorizo esta herramienta." };
+        },
+      });
     }
 
     case "anthropic": {
