@@ -69,6 +69,16 @@ export default function FeedPage() {
   const [conexion, setConexion] = useState<Conexion>("conectando");
   const [filtro, setFiltro] = useState<Tipo | "todos">("todos");
   const [limite, setLimite] = useState<number>(20);
+  const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
+
+  function toggleExpandida(id: string) {
+    setExpandidas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   useEffect(() => {
     const es = new EventSource("/api/feed/stream");
@@ -249,7 +259,12 @@ export default function FeedPage() {
               as="li"
               key={e.id}
               spotlightColor="rgba(255, 255, 255, 0.12)"
-              className={"border rounded-xl p-5 flex gap-5 items-start " + COLOR[e.status]}
+              className={
+                "border rounded-xl p-5 flex gap-5 items-start " +
+                (e.detail ? "cursor-pointer " : "") +
+                COLOR[e.status]
+              }
+              onClick={e.detail ? () => toggleExpandida(e.id) : undefined}
             >
               <span className="text-xs uppercase tracking-widest opacity-60 w-16 shrink-0 pt-1">
                 {ETIQUETA[e.kind as Tipo] ?? e.kind}
@@ -258,7 +273,12 @@ export default function FeedPage() {
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-zinc-100">{e.title}</div>
                 {e.detail && (
-                  <div className="text-sm text-zinc-400 mt-1 whitespace-pre-wrap line-clamp-4">
+                  <div
+                    className={
+                      "text-sm text-zinc-400 mt-1 whitespace-pre-wrap " +
+                      (expandidas.has(e.id) ? "" : "line-clamp-4")
+                    }
+                  >
                     {e.detail}
                   </div>
                 )}

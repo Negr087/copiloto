@@ -35,7 +35,7 @@ export async function handleAsk(texto: string): Promise<void> {
       status: "ok",
       title: res.titulo,
       detail:
-        res.salida.slice(0, 240) +
+        res.salida +
         "  [" + res.intent + " - " + (res.msClasificar + res.msActuar) + "ms]",
     });
   } catch (err) {

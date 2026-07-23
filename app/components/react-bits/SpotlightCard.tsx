@@ -15,6 +15,7 @@ interface SpotlightCardProps extends React.PropsWithChildren {
   className?: string;
   spotlightColor?: string;
   as?: "div" | "li";
+  onClick?: () => void;
 }
 
 export default function SpotlightCard({
@@ -22,6 +23,7 @@ export default function SpotlightCard({
   className = "",
   spotlightColor = "rgba(255, 255, 255, 0.15)",
   as = "div",
+  onClick,
 }: SpotlightCardProps) {
   const divRef = useRef<HTMLElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -58,6 +60,7 @@ export default function SpotlightCard({
       onBlur={handleBlur}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       className={"relative overflow-hidden " + className}
     >
       <div
