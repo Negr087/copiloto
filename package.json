@@ -27,6 +27,7 @@
     "ai-sdk-provider-claude-code": "3.5.0",
     "dotenv": "^17.4.2",
     "light-bolt11-decoder": "^3.2.0",
+    "motion": "^12.42.2",
     "next": "16.2.10",
     "nostr-tools": "2.23.9",
     "react": "19.2.4",

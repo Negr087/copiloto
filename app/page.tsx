@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import LetterGlitch from "./components/react-bits/LetterGlitch";
+import DecryptedText from "./components/react-bits/DecryptedText";
+import SpotlightCard from "./components/react-bits/SpotlightCard";
 
 interface Entry {
   id: string;
@@ -117,117 +120,138 @@ export default function FeedPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#05070e] text-zinc-100 p-10 font-mono">
-      <header className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">
-            Copiloto<span className="text-orange-500">.</span>
-          </h1>
-          <p className="text-zinc-500 mt-2">
-            Tu portapapeles no habla Bitcoin. Copiloto si.
-          </p>
-        </div>
+    <main className="relative min-h-screen bg-[#05070e] text-zinc-100 font-mono">
+      <div className="fixed inset-0 opacity-20">
+        <LetterGlitch
+          glitchColors={["#1a1f2e", "#f97316", "#34d399"]}
+          glitchSpeed={60}
+          outerVignette
+          smooth
+        />
+      </div>
 
-        <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-zinc-500 pt-2 shrink-0">
-          <span className={"h-2 w-2 rounded-full " + CONEXION[conexion].dot} />
-          {CONEXION[conexion].texto}
-        </div>
-      </header>
-
-      {pending && (
-        <div className="mb-8 border-2 border-amber-400 rounded-xl p-6 bg-amber-400/10 animate-pulse-none">
-          <div className="text-xs uppercase tracking-widest text-amber-400 mb-2">
-            Confirmacion requerida - {restante}s
+      <div className="relative z-10 p-10">
+        <header className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">
+              <DecryptedText
+                text="Copiloto"
+                animateOn="view"
+                sequential
+                speed={40}
+                className="text-zinc-100"
+                encryptedClassName="text-zinc-600"
+              />
+              <span className="text-orange-500">.</span>
+            </h1>
+            <p className="text-zinc-500 mt-2">
+              Tu portapapeles no habla Bitcoin. Copiloto si.
+            </p>
           </div>
-          <div className="text-2xl font-bold mb-1">{pending.titulo}</div>
-          <pre className="text-sm text-zinc-300 whitespace-pre-wrap mb-5 font-mono">
-            {pending.detalle}
-          </pre>
-          <div className="flex gap-3">
-            <button
-              onClick={() => decidir(true)}
-              disabled={enviando}
-              className="px-6 py-3 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 disabled:opacity-50 transition"
-            >
-              Pagar
-            </button>
-            <button
-              onClick={() => decidir(false)}
-              disabled={enviando}
-              className="px-6 py-3 rounded-lg bg-zinc-800 text-zinc-300 font-bold hover:bg-zinc-700 disabled:opacity-50 transition"
-            >
-              Cancelar
-            </button>
+
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-zinc-500 pt-2 shrink-0">
+            <span className={"h-2 w-2 rounded-full " + CONEXION[conexion].dot} />
+            {CONEXION[conexion].texto}
           </div>
-        </div>
-      )}
+        </header>
 
-      {entries.length === 0 && !pending && (
-        <div className="border border-dashed border-zinc-800 rounded-xl p-16 text-center text-zinc-600">
-          Copia una factura Lightning o un npub para empezar
-        </div>
-      )}
-
-      {entries.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-widest">
-          <button onClick={() => setFiltro("todos")} className={claseFiltro(filtro === "todos")}>
-            Todos
-          </button>
-          {TIPOS.map((t) => (
-            <button key={t} onClick={() => setFiltro(t)} className={claseFiltro(filtro === t)}>
-              {ETIQUETA[t]}
-            </button>
-          ))}
-
-          <span className="ml-auto flex items-center gap-2 text-zinc-500 normal-case tracking-normal">
-            {visibles.length} / {filtradas.length}
-            <select
-              value={limite}
-              onChange={(ev) => setLimite(Number(ev.target.value))}
-              className="rounded border border-zinc-700 bg-transparent px-2 py-1 text-zinc-300"
-            >
-              {LIMITES.map((n) => (
-                <option key={n} value={n} className="bg-[#05070e]">
-                  {n}
-                </option>
-              ))}
-            </select>
-          </span>
-        </div>
-      )}
-
-      {entries.length > 0 && visibles.length === 0 && (
-        <div className="border border-dashed border-zinc-800 rounded-xl p-16 text-center text-zinc-600">
-          No hay entradas de este tipo todavia
-        </div>
-      )}
-
-      <ul className="space-y-3">
-        {visibles.map((e) => (
-          <li
-            key={e.id}
-            className={"border rounded-xl p-5 flex gap-5 items-start " + COLOR[e.status]}
-          >
-            <span className="text-xs uppercase tracking-widest opacity-60 w-16 shrink-0 pt-1">
-              {ETIQUETA[e.kind as Tipo] ?? e.kind}
-            </span>
-
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-zinc-100">{e.title}</div>
-              {e.detail && (
-                <div className="text-sm text-zinc-400 mt-1 whitespace-pre-wrap line-clamp-4">
-                  {e.detail}
-                </div>
-              )}
-              <div className="text-xs text-zinc-600 mt-2">{e.preview}</div>
+        {pending && (
+          <div className="mb-8 border-2 border-amber-400 rounded-xl p-6 bg-amber-400/10 animate-pulse-none">
+            <div className="text-xs uppercase tracking-widest text-amber-400 mb-2">
+              Confirmacion requerida - {restante}s
             </div>
+            <div className="text-2xl font-bold mb-1">{pending.titulo}</div>
+            <pre className="text-sm text-zinc-300 whitespace-pre-wrap mb-5 font-mono">
+              {pending.detalle}
+            </pre>
+            <div className="flex gap-3">
+              <button
+                onClick={() => decidir(true)}
+                disabled={enviando}
+                className="px-6 py-3 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 disabled:opacity-50 transition"
+              >
+                Pagar
+              </button>
+              <button
+                onClick={() => decidir(false)}
+                disabled={enviando}
+                className="px-6 py-3 rounded-lg bg-zinc-800 text-zinc-300 font-bold hover:bg-zinc-700 disabled:opacity-50 transition"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
 
-            <time className="text-xs text-zinc-600 shrink-0">
-              {new Date(e.ts).toLocaleTimeString("es-AR")}
-            </time>
-          </li>
-        ))}
-      </ul>
+        {entries.length === 0 && !pending && (
+          <div className="border border-dashed border-zinc-800 rounded-xl p-16 text-center text-zinc-600">
+            Copia una factura Lightning o un npub para empezar
+          </div>
+        )}
+
+        {entries.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-widest">
+            <button onClick={() => setFiltro("todos")} className={claseFiltro(filtro === "todos")}>
+              Todos
+            </button>
+            {TIPOS.map((t) => (
+              <button key={t} onClick={() => setFiltro(t)} className={claseFiltro(filtro === t)}>
+                {ETIQUETA[t]}
+              </button>
+            ))}
+
+            <span className="ml-auto flex items-center gap-2 text-zinc-500 normal-case tracking-normal">
+              {visibles.length} / {filtradas.length}
+              <select
+                value={limite}
+                onChange={(ev) => setLimite(Number(ev.target.value))}
+                className="rounded border border-zinc-700 bg-transparent px-2 py-1 text-zinc-300"
+              >
+                {LIMITES.map((n) => (
+                  <option key={n} value={n} className="bg-[#05070e]">
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </span>
+          </div>
+        )}
+
+        {entries.length > 0 && visibles.length === 0 && (
+          <div className="border border-dashed border-zinc-800 rounded-xl p-16 text-center text-zinc-600">
+            No hay entradas de este tipo todavia
+          </div>
+        )}
+
+        <ul className="space-y-3">
+          {visibles.map((e) => (
+            <SpotlightCard
+              as="li"
+              key={e.id}
+              spotlightColor="rgba(255, 255, 255, 0.12)"
+              className={"border rounded-xl p-5 flex gap-5 items-start " + COLOR[e.status]}
+            >
+              <span className="text-xs uppercase tracking-widest opacity-60 w-16 shrink-0 pt-1">
+                {ETIQUETA[e.kind as Tipo] ?? e.kind}
+              </span>
+
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-zinc-100">{e.title}</div>
+                {e.detail && (
+                  <div className="text-sm text-zinc-400 mt-1 whitespace-pre-wrap line-clamp-4">
+                    {e.detail}
+                  </div>
+                )}
+                <div className="text-xs text-zinc-600 mt-2">{e.preview}</div>
+              </div>
+
+              <time className="text-xs text-zinc-600 shrink-0">
+                {new Date(e.ts).toLocaleTimeString("es-AR")}
+              </time>
+            </SpotlightCard>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }
