@@ -16,7 +16,7 @@ Hackaton #5 AI AGENTS - La Crypta - track Bots & Automation.
 ```bash
 git clone https://github.com/agustinkassis/ai-start copiloto
 cd copiloto
-nvm use            # Node 22.13+ obligatorio (lo pide Mastra)
+nvm use            # Node 22+ obligatorio (lo pide @getalby/sdk)
 pnpm install
 ```
 

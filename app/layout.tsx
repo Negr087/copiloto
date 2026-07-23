@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Agents Starter — La Crypta",
+  title: "Copiloto",
   description:
-    "Boilerplate para el hackathon AI AGENTS de La Crypta: Next.js + Mastra + Vercel AI SDK + Lightning (NWC) + Nostr.",
+    "Tu portapapeles no habla Bitcoin. Copiloto sí: paga facturas Lightning, resume perfiles Nostr y más, con solo copiar.",
 };
 
 export default function RootLayout({

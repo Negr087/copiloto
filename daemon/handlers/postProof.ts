@@ -4,10 +4,8 @@ import { getSecretKeyFromEnv, publishNote } from "@/lib/nostr";
 import * as feed from "../feed";
 
 /**
- * El "pay-and-post" del boilerplate (src/mastra/workflows/pay-and-post.ts),
- * pero disparado desde el flujo real del daemon en vez del playground: aca
- * el pago ya paso por procesarFactura, asi que solo redactamos la nota y
- * publicamos la prueba.
+ * Tras un pago, redacta una nota corta con el LLM y publica la prueba
+ * (nota + preimage) en Nostr.
  *
  * Opt-in por NOSTR_NSEC: si no esta configurada, no hacemos nada (ni
  * feed, ni error). Cualquier fallo despues de eso queda en el feed pero

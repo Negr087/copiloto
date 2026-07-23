@@ -31,11 +31,6 @@ export function isAuthConfigured(provider: ProviderId = getProvider()): boolean 
   return Boolean(process.env[PROVIDERS[provider].keyEnv]?.trim());
 }
 
-/** Chat tools are bridged for every provider except the Claude Code subscription. */
-export function providerSupportsChatTools(provider: ProviderId = getProvider()): boolean {
-  return PROVIDERS[provider].toolsInChat;
-}
-
 /** Human-readable label for the active provider. */
 export function modeLabel(provider: ProviderId = getProvider()): string {
   return PROVIDERS[provider].label;

@@ -11,7 +11,6 @@ type ProviderStatus = {
   connect: boolean;
   free: boolean;
   runtime: 'node' | 'any';
-  toolsInChat: boolean;
   defaultModel: string;
   modelSuggestions: string[];
   note: string | null;
@@ -269,11 +268,6 @@ export function SetupPanel() {
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-muted">
                   {p.free && <span className="rounded bg-surface-2 px-1.5 py-0.5">gratis</span>}
-                  {p.toolsInChat ? (
-                    <span className="rounded bg-surface-2 px-1.5 py-0.5">tools en chat</span>
-                  ) : (
-                    <span className="rounded bg-surface-2 px-1.5 py-0.5">sin tools en chat</span>
-                  )}
                   <span className="rounded bg-surface-2 px-1.5 py-0.5">
                     {p.runtime === 'node' ? 'solo Node' : 'edge/serverless'}
                   </span>

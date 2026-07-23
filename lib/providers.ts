@@ -28,8 +28,6 @@ export type ProviderMeta = {
   free: boolean;
   /** Deploy runtime: 'node' (spawns a subprocess) or 'any'. */
   runtime: 'node' | 'any';
-  /** Whether the chat agent gets its Mastra tools with this provider. */
-  toolsInChat: boolean;
   defaultModel: string;
   modelSuggestions: string[];
   note?: string;
@@ -46,10 +44,9 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
     connect: true,
     free: true,
     runtime: 'node',
-    toolsInChat: false,
     defaultModel: 'claude-opus-4-8',
     modelSuggestions: ['opus', 'sonnet', 'haiku', 'claude-opus-4-8'],
-    note: 'Gratis con tu plan Pro/Max. Solo Node.js (no edge). No puentea tools en el chat.',
+    note: 'Gratis con tu plan Pro/Max. Solo Node.js (no edge).',
   },
   anthropic: {
     id: 'anthropic',
@@ -61,7 +58,6 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
     connect: false,
     free: false,
     runtime: 'any',
-    toolsInChat: true,
     defaultModel: 'claude-opus-4-8',
     modelSuggestions: ['claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5'],
   },
@@ -75,7 +71,6 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
     connect: false,
     free: false,
     runtime: 'any',
-    toolsInChat: true,
     defaultModel: 'gpt-4o',
     modelSuggestions: ['gpt-4o', 'gpt-4o-mini', 'o3-mini', 'gpt-4.1'],
   },
@@ -88,7 +83,6 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
     connect: false,
     free: false,
     runtime: 'any',
-    toolsInChat: true,
     defaultModel: 'anthropic/claude-opus-4-8',
     modelSuggestions: [
       'anthropic/claude-opus-4-8',

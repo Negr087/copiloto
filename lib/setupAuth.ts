@@ -26,7 +26,6 @@ export type ProviderStatus = {
   connect: boolean;
   free: boolean;
   runtime: 'node' | 'any';
-  toolsInChat: boolean;
   defaultModel: string;
   modelSuggestions: string[];
   note: string | null;
@@ -62,7 +61,6 @@ export function authStatus(): AuthStatus {
         connect: m.connect,
         free: m.free,
         runtime: m.runtime,
-        toolsInChat: m.toolsInChat,
         defaultModel: m.defaultModel,
         modelSuggestions: m.modelSuggestions,
         note: m.note ?? null,

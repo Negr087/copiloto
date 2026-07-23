@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.1.2",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,6 @@
     "lint": "eslint",
     "setup": "tsx scripts/setup-auth.ts",
     "gen:keys": "node scripts/gen-keys.mjs",
-    "playground": "mastra dev",
     "demo": "tsx scripts/demo.ts",
     "daemon": "tsx daemon/index.ts",
     "ask": "tsx daemon/ask.ts",
@@ -22,10 +21,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.93",
     "@ai-sdk/openai": "3.0.80",
-    "@ai-sdk/react": "3.0.221",
     "@getalby/sdk": "8.0.3",
-    "@mastra/ai-sdk": "1.6.1",
-    "@mastra/core": "1.49.0",
     "@scure/base": "^2.0.0",
     "ai": "6.0.219",
     "ai-sdk-provider-claude-code": "3.5.0",
@@ -34,8 +30,7 @@
     "next": "16.2.10",
     "nostr-tools": "2.23.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "zod": "^4.4.3"
+    "react-dom": "19.2.4"
   },
   "optionalDependencies": {
     "node-pty": "1.1.0"
@@ -47,7 +42,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
-    "mastra": "1.18.0",
     "tailwindcss": "^4",
     "tsx": "4.20.6",
     "typescript": "^5"

@@ -42,7 +42,7 @@ Un proceso que lee todo lo que copiás también lee tus contraseñas. Por eso:
 
 ## Requisitos
 
-- **Node.js 22.13+** (lo pide Mastra). Con nvm: `nvm use` (hay `.nvmrc`).
+- **Node.js 22+** (lo pide `@getalby/sdk`). Con nvm: `nvm use` (hay `.nvmrc`).
 - **pnpm** (el repo fija `pnpm@11` vía `packageManager` + corepack).
 - Una wallet Lightning con **Nostr Wallet Connect** (NWC) — usá una
   dedicada, con poco saldo: esto paga solo por debajo de cierto monto.
@@ -167,7 +167,7 @@ test/
 
 ## Gotchas
 
-- **Node 22.13+ obligatorio** (Mastra). Con Node 20 falla. `nvm use`.
+- **Node 22+ obligatorio** (`@getalby/sdk`). Con Node 20 falla. `nvm use`.
 - **AI SDK fijado en v6.** `ai-sdk-provider-claude-code` no tiene build para
   v7, así que `ai`, `@ai-sdk/react` y `@ai-sdk/anthropic` están pineados en
   la línea v6. No los subas a `@latest`.

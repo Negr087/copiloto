@@ -9,7 +9,8 @@ agente decide qué hacer.
 - WSL (Ubuntu de consola sobre Windows 11). NO hay portapapeles Linux ni
   notify-send: el daemon usa el portapapeles de Windows vía powershell.exe.
 - Node 22 con nvm, pnpm 11 con corepack.
-- Base: boilerplate agustinkassis/ai-start (Next.js 16 + Mastra + AI SDK v6).
+- Base: boilerplate agustinkassis/ai-start (Next.js 16 + AI SDK v6). Se sacó
+  Mastra: el daemon no usa tool-calling ni workflows, solo `generateText`.
 - AI_PROVIDER=subscription (Claude Pro). El proyecto tiene que costar $0.
 
 ## Arquitectura
