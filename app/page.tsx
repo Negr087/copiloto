@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import LetterGlitch from "./components/react-bits/LetterGlitch";
 import DecryptedText from "./components/react-bits/DecryptedText";
 import SpotlightCard from "./components/react-bits/SpotlightCard";
+import BorderGlow from "./components/react-bits/BorderGlow";
+import ShinyText from "./components/react-bits/ShinyText";
 
 interface Entry {
   id: string;
@@ -121,14 +123,15 @@ export default function FeedPage() {
 
   return (
     <main className="relative min-h-screen bg-[#05070e] text-zinc-100 font-mono">
-      <div className="fixed inset-0 opacity-20">
+      <div className="fixed inset-0 opacity-[0.35]">
         <LetterGlitch
-          glitchColors={["#1a1f2e", "#f97316", "#34d399"]}
+          glitchColors={["#12141c", "#9a3412", "#065f46"]}
           glitchSpeed={60}
           outerVignette
           smooth
         />
       </div>
+      <div className="fixed inset-0 bg-[#05070e]/40" />
 
       <div className="relative z-10 p-10">
         <header className="mb-8 flex items-start justify-between gap-4">
@@ -156,7 +159,14 @@ export default function FeedPage() {
         </header>
 
         {pending && (
-          <div className="mb-8 border-2 border-amber-400 rounded-xl p-6 bg-amber-400/10 animate-pulse-none">
+          <BorderGlow
+            className="mb-8 p-6"
+            backgroundColor="rgba(251, 191, 36, 0.06)"
+            borderRadius={12}
+            glowColor="45 90 65"
+            colors={["#fbbf24", "#f59e0b", "#fde68a"]}
+            animated
+          >
             <div className="text-xs uppercase tracking-widest text-amber-400 mb-2">
               Confirmacion requerida - {restante}s
             </div>
@@ -180,12 +190,17 @@ export default function FeedPage() {
                 Cancelar
               </button>
             </div>
-          </div>
+          </BorderGlow>
         )}
 
         {entries.length === 0 && !pending && (
           <div className="border border-dashed border-zinc-800 rounded-xl p-16 text-center text-zinc-600">
-            Copia una factura Lightning o un npub para empezar
+            <ShinyText
+              text="Copia una factura Lightning o un npub para empezar"
+              color="#71717a"
+              shineColor="#fbbf24"
+              speed={3}
+            />
           </div>
         )}
 
@@ -219,7 +234,12 @@ export default function FeedPage() {
 
         {entries.length > 0 && visibles.length === 0 && (
           <div className="border border-dashed border-zinc-800 rounded-xl p-16 text-center text-zinc-600">
-            No hay entradas de este tipo todavia
+            <ShinyText
+              text="No hay entradas de este tipo todavia"
+              color="#71717a"
+              shineColor="#fbbf24"
+              speed={3}
+            />
           </div>
         )}
 
